@@ -1,0 +1,35 @@
+---
+# tasks file for nginx_role
+- name: Update and upgrade system packages
+  apt:
+    update_cache: yes
+    upgrade: yes
+
+- name: Install NGINX
+  apt:
+    name: nginx
+    state: present
+
+- name: Copy custom NGINX configuration
+  copy:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart NGINX
+
+- name: Allow HTTP and HTTPS in firewall
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - 80
+    - 443
+
+- name: Start and enable NGINX service
+  service:
+    name: nginx
+    state: started
+    enabled: yes
