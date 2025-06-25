@@ -1,37 +1,30 @@
-- name: Install and Configure NGINX
-  hosts: all
+---
+- name: Setup NGINX without roles
+  hosts: web
   become: yes
+
+  vars:
+    nginx_listen_port: 80
+    nginx_server_name: localhost
+    nginx_root_dir: /var/www/html
+
   tasks:
-
-    - name: Update and upgrade packages
-      apt:
-        update_cache: yes
-        upgrade: yes
-
-    - name: Install NGINX
+    - name: Install nginx
       apt:
         name: nginx
         state: present
+        update_cache: yes
 
-    - name: Copy custom NGINX configuration
-      copy:
-        src: ./nginx.conf  # Make sure this file exists in the same directory
+    - name: Deploy custom NGINX configuration from template
+      template:
+        src: nginx.conf.j2
         dest: /etc/nginx/nginx.conf
         owner: root
         group: root
         mode: '0644'
-      notify: Restart NGINX
 
-
-    - name: Start and enable NGINX service
-      service:
-        name: nginx
-        state: started
-        enabled: yes
-
-  handlers:
-    - name: Restart NGINX
+    - name: Ensure nginx is running and enabled
       service:
         name: nginx
         state: restarted
-
+        enabled: yes
